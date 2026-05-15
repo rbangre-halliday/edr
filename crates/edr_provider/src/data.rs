@@ -2576,7 +2576,7 @@ where
             // Return the initial estimation if it was successful
             if success {
                 return Ok(EstimateGasResult {
-                    estimation: initial_estimation,
+                    estimation: gas::with_safety_margin(initial_estimation, header.gas_limit),
                     traces: trace_collector.into_traces(),
                 });
             }
@@ -2597,7 +2597,10 @@ where
             })?;
 
             let traces = trace_collector.into_traces();
-            Ok(EstimateGasResult { estimation, traces })
+            Ok(EstimateGasResult {
+                estimation: gas::with_safety_margin(estimation, header.gas_limit),
+                traces,
+            })
         })?
     }
 }

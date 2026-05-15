@@ -152,6 +152,17 @@ where
     Ok(upper_bound)
 }
 
+/// Add a safety margin to a tight gas estimate. `check_gas_limit` simulates at
+/// the current header, but `eth_sendRawTransaction` mines into a new block
+/// whose context (e.g. `block.timestamp`) can shift gas consumed at deep call
+/// frames just enough to flip a borderline budget into out-of-gas (notably
+/// Uniswap-V3-style swaps where pool observation SSTOREs depend on timestamp).
+#[inline]
+pub(super) fn with_safety_margin(tight: u64, max: u64) -> u64 {
+    const SAFETY_MARGIN_PERCENT: u64 = 10;
+    tight.saturating_add(tight / 100 * SAFETY_MARGIN_PERCENT).min(max)
+}
+
 // Matches Hardhat
 #[inline]
 fn min_difference(lower_bound: u64) -> u64 {
